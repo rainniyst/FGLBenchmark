@@ -1,0 +1,8 @@
+logs/
+raw_data/
+visualize*
+test*
+Scaffold2.py
+
+__pycache__
+.idea
