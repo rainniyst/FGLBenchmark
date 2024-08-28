@@ -25,11 +25,12 @@ if not os.path.exists(log_path):
 parser.add_argument("--logs_dir", type=str, default=log_path)
 
 # parser.add_argument("--specified_task", type=str)
-parser.add_argument("--specified_domain_skew_task", type=str, default="ogbn_arxiv_years")
-
+# parser.add_argument("--specified_domain_skew_task", type=str, default="ogbn_arxiv_years")
+parser.add_argument("--specified_domain_skew_task", type=str, default=None)
 parser.add_argument("--task", type=str, default="node_classification")
 parser.add_argument("--skew_type", type=str, default="domain_skew")
-parser.add_argument("--train_val_test_split", type=list, default=[0.5, 0.25, 0.25])
+# parser.add_argument("--train_val_test_split", type=list, default=[0.5, 0.25, 0.25])
+parser.add_argument("--train_val_test_split", type=list, default=[0.09, 0.3, 0.61])
 parser.add_argument("--dataset_split_metric", type=str, default="inductive")
 
 parser.add_argument("--num_rounds", type=int, default=50)
@@ -55,5 +56,15 @@ parser.add_argument("--device_id", type=int, default=0)
 # parser.add_argument("--partitioner", type=str, default="dirichlet")
 # parser.add_argument("--partitioner", type=str, default="louvain")
 parser.add_argument("--dirichlet_alpha", type=float, default=1)
+
+
+
+# for fedtad
+parser.add_argument("--fedtad_noise_dim", type=int, default=32)
+parser.add_argument("--fedtad_num_gen", type=int, default=100)
+parser.add_argument("--fedtad_glb_epochs", type=int, default=5)
+parser.add_argument('--fedtad_it_g', type=int, default=1)
+parser.add_argument('--fedtad_it_d', type=int, default=5)
+parser.add_argument('--fedtad_topk', type=int, default=5)
 
 args = parser.parse_args()

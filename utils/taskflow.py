@@ -27,7 +27,9 @@ class TaskFlow:
                 if args.dataset_split_metric == "transductive":
                     # data = split_train_test(self.dataset[0], args.train_val_test_split)
                     # clients_data = partition(args, data)
-                    clients_data = dirichlet_partitioner(args, self.dataset, args.dirichlet_alpha)
+
+                    # clients_data = dirichlet_partitioner(args, self.dataset, args.dirichlet_alpha)
+                    clients_data = dirichlet_partitioner(self.dataset, args.num_clients, args.dirichlet_alpha)
 
                     clients = []
                     for cid in range(args.num_clients):
@@ -69,12 +71,10 @@ class TaskFlow:
                     out_dim = len(np.unique(listy))
                     server_model = get_model(args.model, input_dim, args.hidden_dim, out_dim, args.num_layers, args.dropout)
                     server_model.to(self.device)
-
                     clients_data = load_ds_dataset(args, self.dataset)
                     # data = split_train_test(self.dataset[0], args.train_val_test_split)
                     # clients_data = partition(args, data)
                     num_clients = len(clients_data)
-
                     clients = []
                     for cid in range(num_clients):
                         client_model = get_model(args.model, input_dim, args.hidden_dim, out_dim, args.num_layers,
@@ -98,7 +98,8 @@ class TaskFlow:
                     if args.dataset_split_metric == "transductive":
                         # data = split_train_test(self.dataset[0], args.train_val_test_split)
                         # clients_data = partition(args, data)
-                        clients_data = louvain_partitioner(args, self.dataset)
+                        # clients_data = louvain_partitioner(args, self.dataset)
+                        clients_data = louvain_partitioner(self.dataset, args.num_clients)
 
                         clients = []
                         for cid in range(args.num_clients):

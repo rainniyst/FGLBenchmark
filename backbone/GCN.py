@@ -26,4 +26,3 @@ class GCN(nn.Module):
         x = self.layers[-1](x, edge_index)
         return F.log_softmax(x, dim=1)
 
-
