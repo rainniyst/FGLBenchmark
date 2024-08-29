@@ -1,6 +1,6 @@
 from algorithm.Base import BaseServer, BaseClient
 import torch
-
+import copy
 
 class ScaffoldServer(BaseServer):
     def __init__(self, args, clients, model, data, logger):
@@ -10,7 +10,7 @@ class ScaffoldServer(BaseServer):
 
     def communicate(self):
         for cid in self.sampled_clients:
-            self.clients[cid].global_model = self.model
+            self.clients[cid].global_model = copy.deepcopy(self.model)
             self.clients[cid].global_control = self.global_control
             for client_param, server_param in zip(self.clients[cid].model.parameters(), self.model.parameters()):
                 client_param.data.copy_(server_param.data)

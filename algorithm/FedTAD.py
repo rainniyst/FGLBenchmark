@@ -26,29 +26,38 @@ class FedTADServer(BaseServer):
         self.global_model_optimizer = Adam(self.model.parameters(),lr=self.args.learning_rate,weight_decay=args.weight_decay)
         self.generator_optimizer = Adam(self.generator.parameters(),lr=self.args.learning_rate,weight_decay=args.weight_decay)
 
+    def run(self):
+        for round in range(self.num_rounds):
+            print("round "+str(round+1)+":")
+            self.logger.write_round(round+1)
+            self.sample()
+            self.communicate()
 
-    def aggregate(self):
-        num_total_samples = sum([self.clients[cid].num_samples for cid in self.sampled_clients])
-        for i, cid in enumerate(self.sampled_clients):
-            w = self.clients[cid].num_samples / num_total_samples
-            for client_param, global_param in zip(self.clients[cid].model.parameters(), self.model.parameters()):
-                if i == 0:
-                    global_param.data.copy_(w * client_param)
-                else:
-                    global_param.data += w * client_param
+            print("cid : ", end='')
+            for cid in self.sampled_clients:
+                print(cid, end=' ')
+                for epoch in range(self.num_epochs):
+                    self.clients[cid].train()
 
+            self.aggregate()
+            self.train_generator_and_global_model()
+            self.local_validate()
+            self.global_evaluate()
+
+
+    def train_generator_and_global_model(self):
         self.global_model_optimizer.zero_grad()
         self.generator_optimizer.zero_grad()
 
         #这里的ckr第0维度长度为clients的长度，实际上只有被采样的维度有值
         ckr = torch.zeros((len(self.clients), self.num_classes)).to(self.device)
         for c_id in self.sampled_clients:
-            graph_emb = cal_topo_emb(edge_index=self.clients[cid].data.edge_index, num_nodes=self.clients[cid].data.x.shape[0], max_walk_length=5).to(self.device)    
-            ft_emb = torch.cat((self.clients[cid].data.x, graph_emb), dim=1).to(self.device)
+            graph_emb = cal_topo_emb(edge_index=self.clients[c_id].data.edge_index, num_nodes=self.clients[c_id].data.x.shape[0], max_walk_length=5).to(self.device)    
+            ft_emb = torch.cat((self.clients[c_id].data.x, graph_emb), dim=1).to(self.device)
             # 使用train_mask来获取训练节点的索引
-            train_indices = torch.nonzero(self.clients[cid].data.train_mask, as_tuple=False).squeeze()
+            train_indices = torch.nonzero(self.clients[c_id].data.train_mask, as_tuple=False).squeeze()
             for train_i in train_indices:
-                neighbor = self.clients[cid].data.edge_index[1,:][self.clients[cid].data.edge_index[0, :] == train_i] 
+                neighbor = self.clients[c_id].data.edge_index[1,:][self.clients[c_id].data.edge_index[0, :] == train_i] 
                 node_all = 0
                 for neighbor_j in neighbor:
                     node_kr = torch.cosine_similarity(ft_emb[train_i], ft_emb[neighbor_j], dim=0)
@@ -56,7 +65,7 @@ class FedTADServer(BaseServer):
                 node_all += 1
                 node_all /= (neighbor.shape[0] + 1)
                 
-                label = self.clients[cid].data.y[train_i]
+                label = self.clients[c_id].data.y[train_i]
                 ckr[c_id, label] += node_all
         normalized_ckr = ckr / (ckr.sum(0)+1e-8)   #防止除0 nan
 
