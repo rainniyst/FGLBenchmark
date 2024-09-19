@@ -7,7 +7,7 @@ supported_datasets = ['cora', 'citeseer', 'pubmed', 'cs', 'physics', 'computers'
                         'ogbn-arxiv', 'ogbn-products', 'ogbn-proteins', 'genius',
                         'roman_empire', 'amazon_ratings', 'minesweeper', 'tolokers', 'questions']
 
-supported_specified_task = ['ogbn_arxiv_years']
+supported_specified_task = ['cora']
 
 parser = argparse.ArgumentParser()
 
@@ -66,5 +66,10 @@ parser.add_argument("--fedtad_glb_epochs", type=int, default=5)
 parser.add_argument('--fedtad_it_g', type=int, default=1)
 parser.add_argument('--fedtad_it_d', type=int, default=5)
 parser.add_argument('--fedtad_topk', type=int, default=5)
+
+# for FGSSL
+parser.add_argument("--distill_loss", type=int, default=10)
+parser.add_argument("--contrastive_loss", type=int, default=10)
+
 
 args = parser.parse_args()
