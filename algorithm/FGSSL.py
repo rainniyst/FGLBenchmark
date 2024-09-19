@@ -60,9 +60,9 @@ def compute_similarity_loss(data, feature, feature_g):
     return loss
 
 
-class FedAvgServer(BaseServer):
+class FGSSLClient(BaseServer):
     def __init__(self, args, clients, model, data, logger):
-        super(FedAvgServer, self).__init__(args, clients, model, data, logger)
+        super(FGSSLClient, self).__init__(args, clients, model, data, logger)
 
     def communicate(self):
         for cid in self.sampled_clients:
