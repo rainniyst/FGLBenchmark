@@ -11,7 +11,7 @@ supported_specified_task = ['cora']
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--dataset", type=str, default="ogbn-arxiv")
+parser.add_argument("--dataset", type=str, default="cora")
 current_path = os.path.abspath(__file__)
 dataset_path = os.path.join(os.path.dirname(current_path), 'datasets')
 root_dir = os.path.join(dataset_path, 'raw_data')
@@ -70,6 +70,11 @@ parser.add_argument('--fedtad_topk', type=int, default=5)
 # for FGSSL
 parser.add_argument("--distill_loss", type=int, default=10)
 parser.add_argument("--contrastive_loss", type=int, default=10)
+
+
+#for FGGP
+parser.add_argument("--FGGP_contrastive", type=int, default=0.1)
+parser.add_argument("--FGGP_regu", type=int, default=2)
 
 
 args = parser.parse_args()
