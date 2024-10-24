@@ -112,7 +112,6 @@ def split_train_val_test(data, train_val_test_p):
     p_sum = sum(train_val_test_p)
     proportion = [(p/p_sum) for p in train_val_test_p]
 
-    # 打乱所有节点的索引
     indices = torch.randperm(data.num_nodes)
 
     train_size = int(proportion[0] * data.num_nodes)
@@ -132,7 +131,6 @@ def split_train_val_test(data, train_val_test_p):
     val_mask[val_indices] = True
     test_mask[test_indices] = True
 
-    # 将掩码添加到数据对象中
     data.train_mask = train_mask
     data.val_mask = val_mask
     data.test_mask = test_mask

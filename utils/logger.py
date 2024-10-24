@@ -16,19 +16,19 @@ class DefaultLogger:
         self.file.write("round :"+str(round)+'\n')
 
     def write_test_acc(self, acc):
-        self.file.write("test_acc :"+format(acc, '.4f')+'\n')
+        self.file.write("global_test_acc :"+format(acc, '.4f')+'\n')
 
     def write_test_loss(self, loss):
         self.file.write("test_loss :"+format(loss, '.4f')+'\n')
 
     def write_mean_val_acc(self, mean_val_acc):
-        self.file.write("mean_val_acc :"+format(mean_val_acc, '.4f')+'\n')
+        self.file.write("client_mean_val_acc :"+format(mean_val_acc, '.4f')+'\n')
 
     def write_std_val_loss(self, std_val_loss):
-        self.file.write("std_val_loss :"+format(std_val_loss, '.4f')+'\n')
+        self.file.write("client_std_val_loss :"+format(std_val_loss, '.4f')+'\n')
 
     def write_mean_val_loss(self, mean_val_loss):
-        self.file.write("mean_val_loss :"+format(mean_val_loss, '.4f')+'\n')
+        self.file.write("client_mean_val_loss :"+format(mean_val_loss, '.4f')+'\n')
 
     def write_std_val_acc(self, std_val_acc):
-        self.file.write("std_val_acc :"+format(std_val_acc, '.4f')+'\n')
+        self.file.write("client_std_val_acc :"+format(std_val_acc, '.4f')+'\n')

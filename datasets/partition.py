@@ -12,6 +12,30 @@ from torch_geometric.data import Data
 #     elif args.partitioner == "dirichlet":
 #         return dirichlet_partitioner(data, args.num_clients, args.dirichlet_alpha)
 
+def get_subgraph_by_node(dataset, node_list):
+    node_id_set = set(node_list)
+    global_id_to_local_id = {}
+    local_id_to_global_id = []
+    local_edge_list = []
+    for local_id, global_id in enumerate(node_list):
+        global_id_to_local_id[global_id] = local_id
+        local_id_to_global_id.append(global_id)
+
+    for edge_id in range(dataset.edge_index.shape[1]):
+        src = dataset.edge_index[0, edge_id].item()
+        tgt = dataset.edge_index[1, edge_id].item()
+        if src in node_id_set and tgt in node_id_set:
+            local_id_src = global_id_to_local_id[src]
+            local_id_tgt = global_id_to_local_id[tgt]
+            local_edge_list.append((local_id_src, local_id_tgt))
+
+    local_edge_index = torch.tensor(local_edge_list).t()
+    if not local_edge_list:
+        local_edge_index = torch.empty((2, 0), dtype=torch.int64)
+    local_subgraph = Data(x=dataset.x[node_list], edge_index=local_edge_index, y=dataset.y[node_list])
+    local_subgraph.global_map = local_id_to_global_id
+
+    return local_subgraph
 
 def louvain_partitioner(data, num_clients):
     G = nx.Graph()
@@ -133,7 +157,7 @@ def louvain_partitioner(data, num_clients):
     return clients_data
 
 
-def dirichlet_partitioner(data, num_clients, alpha):
+def dirichlet_partitioner1(data, num_clients, alpha, a, b):
     G = nx.Graph()
     for i in range(data.num_nodes):
         G.add_node(i)
@@ -164,34 +188,8 @@ def dirichlet_partitioner(data, num_clients, alpha):
         for i, idcs in enumerate(np.split(k_idcs, (np.cumsum(fracs)[:-1] * len(k_idcs)).astype(int))):
             clients_nodes[i].extend(idcs)
 
-    # # 初始化子图列表
-    # subgraph_nodes = [[] for _ in range(num_clients)]
-    #
-    # # 根据每个标签生成 Dirichlet 分布样本并分配节点
-    # for label in unique_labels:
-    #     nodes_with_label = [node for node, node_label in labels.items() if node_label == label]
-    #     num_nodes = len(nodes_with_label)
-    #
-    #     dirichlet_samples = np.random.dirichlet([alpha] * num_clients, num_nodes)
-    #     node_assignments = np.argmax(dirichlet_samples, axis=1)
-    #
-    #     for i, node in enumerate(nodes_with_label):
-    #         subgraph_nodes[node_assignments[i]].append(node)
-    #
-    # clients_nodes = subgraph_nodes
 
-    # clients_nodes = [[] for _ in range(num_clients)]
-    # for i in range(len(node_assignments)):
-    #     clients_nodes[node_assignments[i]].append(i)
 
-    # subgraphs = [G.subgraph(np.where(node_assignments == i)[0]).copy() for i in range(num_clients)]
-    # clients_data = []
-    # for subgragh in subgraphs:
-    #     clients_data.append(from_networkx(subgragh))
-
-    # data_x = data.x.tolist()
-    # data_x = [[int(a) for a in l_x] for l_x in data_x]
-    # data_y = data.y.tolist()
 
     clients_data = []
     for nodes in clients_nodes:
@@ -250,5 +248,101 @@ def dirichlet_partitioner(data, num_clients, alpha):
     plt.ylabel("num_samples")
     plt.show()
 
-    return clients_data
+    return clients_nodes
+
+
+def dirichlet_partitioner(data, num_clients, alpha, least_samples, dirichlet_try_cnt):
+    graph_labels = data.y.numpy()
+    num_clients = num_clients
+    unique_labels, label_counts = np.unique(graph_labels, return_counts=True)
+
+    print(f"num_classes: {len(unique_labels)}")
+    print(f"global label distribution: {label_counts}")
+
+    min_size = 0
+    K = len(unique_labels)
+    N = graph_labels.shape[0]
+
+    client_indices = [[] for _ in range(num_clients)]
+
+    try_cnt = 0
+    while min_size < least_samples:
+        if try_cnt > dirichlet_try_cnt:
+            print("alpha("+str(alpha)+") is too small, no solution")
+            break
+
+        client_indices = [[] for _ in range(num_clients)]
+        for k in range(K):
+            idx_k = np.where(graph_labels == k)[0]
+            np.random.shuffle(idx_k)
+            proportions = np.random.dirichlet(np.repeat(alpha, num_clients))
+            proportions = np.array(
+                [p * (len(idx_j) < N / num_clients) for p, idx_j in zip(proportions, client_indices)])
+            proportions = proportions / proportions.sum()
+            proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
+            client_indices = [idx_j + idx.tolist() for idx_j, idx in zip(client_indices, np.split(idx_k, proportions))]
+            min_size = min([len(idx_j) for idx_j in client_indices])
+        try_cnt += 1
+
+    clients_data = []
+    for nodes in client_indices:
+        list.sort(nodes)
+        node_map = {node: i for i, node in enumerate(nodes)}
+        # 提取子图的边
+        sub_edge_index = []
+        for i in range(data.edge_index.size(1)):
+            if data.edge_index[0, i].item() in node_map and data.edge_index[1, i].item() in node_map:
+                sub_edge_index.append([node_map[data.edge_index[0, i].item()], node_map[data.edge_index[1, i].item()]])
+        sub_edge_index = torch.tensor(sub_edge_index, dtype=torch.long).t().contiguous()
+
+        # sub_x = []
+        # sub_y = []
+        # # 提取子图的特征和标签
+        # for node in nodes:
+        #     sub_x.append(data_x[node])
+        #     sub_y.append(data_y[node])
+        sub_x = data.x[nodes]
+        sub_y = data.y[nodes]
+
+        sub_data = Data(x=sub_x, edge_index=sub_edge_index, y=sub_y)
+
+        # if hasattr(data, "train_mask"):
+        #     train_mask = torch.zeros(len(nodes), dtype=torch.bool)
+        #     train_mask1 = data.train_mask.tolist()
+        #     for node in nodes:
+        #         # train_mask[node_map[node]] = data.train_mask[node].item()
+        #         train_mask[node_map[node]] = train_mask1[node]
+        #     sub_data.train_mask = train_mask
+        #
+        # if hasattr(data, "val_mask"):
+        #     val_mask = torch.zeros(len(nodes), dtype=torch.bool)
+        #     val_mask1 = data.val_mask.tolist()
+        #     for node in nodes:
+        #         # test_mask[node_map[node]] = data.test_mask[node].item()
+        #         val_mask[node_map[node]] = val_mask1[node]
+        #     sub_data.val_mask = val_mask
+        #
+        # if hasattr(data, "test_mask"):
+        #     test_mask = torch.zeros(len(nodes), dtype=torch.bool)
+        #     test_mask1 = data.test_mask.tolist()
+        #     for node in nodes:
+        #         # test_mask[node_map[node]] = data.test_mask[node].item()
+        #         test_mask[node_map[node]] = test_mask1[node]
+        #     sub_data.test_mask = test_mask
+
+        clients_data.append(sub_data)
+
+    num_classes = len(unique_labels)
+    import matplotlib.pyplot as plt
+    label_distribution = [[] for _ in range(num_classes)]
+    for cid, client_data in enumerate(clients_data):
+        for label in client_data.y:
+            label_distribution[label].append(cid)
+    plt.hist(label_distribution, stacked=True, label=range(num_classes))
+    plt.xlabel("client_id")
+    plt.ylabel("num_samples")
+    plt.show()
+
+    return client_indices
+
 

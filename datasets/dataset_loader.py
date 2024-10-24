@@ -85,7 +85,7 @@ def load_dataset(train_val_test_split, root_dir, dataset_name):
                         'roman_empire', 'amazon_ratings', 'minesweeper', 'tolokers', 'questions'), 'Invalid dataset'
 
     if len(train_val_test_split) != 3:
-        print("len(args.train_val_test_split)!=3 using default split proportion")
+        print("len(args.train_val_test_split)!=3, will use default split proportion")
         train_val_test_split = [0.6, 0.2, 0.2]
 
     train_prop = train_val_test_split[0]

@@ -60,9 +60,9 @@ def compute_similarity_loss(data, feature, feature_g):
     return loss
 
 
-class FGSSLClient(BaseServer):
+class FGSSLServer(BaseServer):
     def __init__(self, args, clients, model, data, logger):
-        super(FGSSLClient, self).__init__(args, clients, model, data, logger)
+        super(FGSSLServer, self).__init__(args, clients, model, data, logger)
 
     def communicate(self):
         for cid in self.sampled_clients:
@@ -71,8 +71,6 @@ class FGSSLClient(BaseServer):
 
         for client in self.clients:
             client.model_g = self.model
-
-
 
 
 class FGSSLClient(BaseClient):

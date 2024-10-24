@@ -62,6 +62,7 @@ class ScaffoldServer(BaseServer):
             self.aggregate()
             self.update_global_control()
             self.local_validate()
+            self.local_evaluate()
             self.global_evaluate()
 
 

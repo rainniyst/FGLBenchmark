@@ -6,7 +6,6 @@ from torch.optim import Adam
 import torch.nn.functional as F
 from torch_geometric.data import Data
 from torch_geometric.utils import to_dense_adj, add_self_loops, dense_to_sparse
-from backbone.GCN_FedTAD import GCN_FedTAD
 
 class FedTADServer(BaseServer):
     def __init__(self, args, clients, model, data, logger):

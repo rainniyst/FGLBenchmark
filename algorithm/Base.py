@@ -31,6 +31,7 @@ class BaseServer:
 
             self.aggregate()
             self.local_validate()
+            self.local_evaluate()
             self.global_evaluate()
 
     def communicate(self):
@@ -64,6 +65,30 @@ class BaseServer:
             self.logger.write_test_loss(loss.item())
             print("test_acc : "+format(acc, '.4f'))
             self.logger.write_test_acc(acc)
+
+    def local_evaluate(self):
+        clients_test_loss = []
+        clients_test_acc = []
+        self.model.eval()
+        with torch.no_grad():
+            for client in self.clients:
+                with torch.no_grad():
+                    out = self.model(client.data)
+                    loss = F.nll_loss(out[client.data.test_mask], client.data.y[client.data.test_mask])
+                    pred = out[client.data.test_mask].max(dim=1)[1]
+                    acc = pred.eq(client.data.y[client.data.test_mask]).sum().item() / client.data.test_mask.sum().item()
+                    clients_test_loss.append(loss.item())
+                    clients_test_acc.append(acc)
+        mean_val_loss = np.mean(clients_test_loss)
+        std_val_loss = np.std(clients_test_loss)
+        mean_val_acc = np.mean(clients_test_acc)
+        std_val_acc = np.std(clients_test_acc)
+        print("mean_test_loss :"+format(mean_val_loss, '.4f'))
+        self.logger.write_mean_val_loss(mean_val_loss)
+        print("std_test_loss :"+format(std_val_loss, '.4f'))
+        print("mean_test_acc :"+format(mean_val_acc, '.4f'))
+        self.logger.write_mean_val_acc(mean_val_acc)
+        print("std_test_acc :"+format(std_val_acc, '.4f'))
 
     def local_validate(self):
         clients_val_loss = []

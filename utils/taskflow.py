@@ -24,12 +24,15 @@ class TaskFlow:
                 out_dim = len(np.unique(listy))
                 server_model = get_model(args.model, input_dim, args.hidden_dim, out_dim, args.num_layers, args.dropout)
                 server_model.to(self.device)
+
                 if args.dataset_split_metric == "transductive":
                     # data = split_train_test(self.dataset[0], args.train_val_test_split)
                     # clients_data = partition(args, data)
 
                     # clients_data = dirichlet_partitioner(args, self.dataset, args.dirichlet_alpha)
-                    clients_data = dirichlet_partitioner(self.dataset, args.num_clients, args.dirichlet_alpha)
+                    clients_nodes = dirichlet_partitioner(self.dataset, args.num_clients, args.dirichlet_alpha, args.least_samples, args.dirichlet_try_cnt)
+                    clients_data = [get_subgraph_by_node(self.dataset, clients_nodes[i]) for i in range(len(clients_nodes))]
+                    clients_data = [split_train_val_test(clients_data[i], args.train_val_test_split) for i in range(len(clients_data))]
 
                     clients = []
                     for cid in range(args.num_clients):
@@ -41,13 +44,23 @@ class TaskFlow:
                         client = get_client(args.fed_algorithm, args, client_model, client_data)
                         clients.append(client)
 
-                    self.dataset.to(self.device)
-                    self.server = get_server(args.fed_algorithm, args, clients, server_model, self.dataset, logger)
+                    server_nodes = []
+                    for data in clients_data:
+                        for node in range(len(data.global_map)):
+                            if data.test_mask[node]:
+                                server_nodes.append(data.global_map[node])
+
+                    server_data = get_subgraph_by_node(self.dataset, server_nodes)
+                    server_data.test_mask = torch.ones(len(server_nodes), dtype=torch.bool)
+                    server_data.to(self.device)
+                    self.server = get_server(args.fed_algorithm, args, clients, server_model, server_data, logger)
 
                 elif args.dataset_split_metric == "inductive":
                     test_data, train_val_data = split_train_val_test_inductive(self.dataset, args.train_val_test_split)
 
-                    clients_data = dirichlet_partitioner(args, self.dataset, args.dirichlet_alpha)
+                    clients_nodes = dirichlet_partitioner(args, self.dataset, args.dirichlet_alpha, args.least_samples, args.dirichlet_try_cnt)
+                    clients_data = [get_subgraph_by_node(self.dataset, clients_nodes[i]) for i in range(len(clients_nodes))]
+                    clients_data = [split_train_val_test(clients_data[i], args.train_val_test_split) for i in range(len(clients_data))]
 
                     clients = []
                     for cid in range(args.num_clients):
@@ -139,4 +152,5 @@ class TaskFlow:
 
     def run(self):
         self.server.run()
+
 
