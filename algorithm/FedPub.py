@@ -5,12 +5,30 @@ import networkx as nx
 from collections import defaultdict, OrderedDict
 from torch import Tensor
 import torch.nn.functional as F
+from backbone import get_model
+import numpy as np
+
+
 class FedPubServer(BaseServer):
     def __init__(self, args, clients, model, data, logger):
         super(FedPubServer, self).__init__(args, clients, model, data, logger)
         self.args = args
+        listy = self.data.y.tolist()
+        out_dim = len(np.unique(listy))
+        self.num_classes = out_dim
+        self.device = torch.device("cuda:" + str(args.device_id) if torch.cuda.is_available() else "cpu")
+        server_model = get_model("MaskedGCN", self.data.num_node_features, self.args.hidden_dim, self.num_classes, self.args.num_layers, self.args.dropout)
+        server_model.to(self.device)
+        self.model = server_model
+        for cid in range(len(self.clients)):
+            client_model = get_model("MaskedGCN", self.data.num_node_features, self.args.hidden_dim, self.num_classes, self.args.num_layers, self.args.dropout)
+            client_model.to(self.device)
+            self.clients[cid].model = client_model
+            self.clients[cid].optimizer = torch.optim.Adam(self.clients[cid].model.parameters(), lr=self.args.learning_rate, weight_decay=args.weight_decay)
+
 
     def run(self):
+
         for round in range(self.num_rounds):
             print("round "+str(round+1)+":")
             self.logger.write_round(round+1)
@@ -27,7 +45,7 @@ class FedPubServer(BaseServer):
             self.local_validate()
             self.global_evaluate()
 
-    def communicate(self,round):
+    def communicate(self, round):
         if round >= 1:
             # 收集所有客户端的模型权重
             local_weights = []
@@ -50,7 +68,6 @@ class FedPubServer(BaseServer):
                     client_param.data.copy_(server_param.data)
 
     def aggr_weights(self, local_weights, sim_row):
-
         # 确保 sim_row 是一个 PyTorch 张量
         if not isinstance(sim_row, torch.Tensor):
             sim_row = torch.tensor(sim_row)
@@ -115,10 +132,11 @@ class FedPubClient(BaseClient):
         self.global_model = None
         self.proxy = None
 
+
     def train(self):
         self.model.train()
         self.optimizer.zero_grad()
-        out = self.model(self.data)
+        embedding, out = self.model(self.data)
         loss = self.loss_fn(out[self.data.train_mask], self.data.y[self.data.train_mask])
 
         for name, param in self.model.state_dict().items():
@@ -143,8 +161,6 @@ class FedPubClient(BaseClient):
             # proxy_out = proxy_out.clone().detach().cpu().numpy()
             proxy_out = proxy_out.clone().detach()
         return proxy_out
-    
-
 
 
 def from_networkx(G, group_node_attrs=None, group_edge_attrs=None):

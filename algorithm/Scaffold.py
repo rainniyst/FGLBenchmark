@@ -53,12 +53,17 @@ class ScaffoldServer(BaseServer):
             self.sample()
             self.communicate()
 
+            avg_train_loss = 0
             print("cid : ", end='')
             for cid in self.sampled_clients:
                 print(cid, end=' ')
                 for epoch in range(self.num_epochs):
-                    self.clients[cid].train()
+                    loss = self.clients[cid].train()
+                    avg_train_loss += loss * self.clients[cid].num_samples / self.num_total_samples
                 self.clients[cid].update_local_control(self.local_step, self.num_epochs)
+
+            print("\n")
+            print("avg_train_loss = " + str(avg_train_loss))
             self.aggregate()
             self.update_global_control()
             self.local_validate()
@@ -77,7 +82,8 @@ class ScaffoldClient(BaseClient):
     def train(self):
         self.model.train()
         self.optimizer.zero_grad()
-        out = self.model(self.data)
+
+        embedding, out = self.model(self.data)
         loss = self.loss_fn(out[self.data.train_mask], self.data.y[self.data.train_mask])
         loss.backward()
         for p, local_c, global_c in zip(self.model.parameters(), self.local_control, self.global_control):

@@ -22,7 +22,7 @@ class FedProxClient(BaseClient):
     def train(self):
         self.model.train()
         self.optimizer.zero_grad()
-        out = self.model(self.data)
+        embedding, out = self.model(self.data)
         loss = self.loss_fn(out[self.data.train_mask], self.data.y[self.data.train_mask])
         fedprox_reg = 0.0
         for client_param, server_param in zip(self.model.parameters(), self.global_model.parameters()):

@@ -18,7 +18,8 @@ import math
 from typing import Any, Optional
 from torch_geometric.nn import inits
 
-class MaskedGCN_FedPub(nn.Module):
+
+class MaskedGCN(nn.Module):
     def __init__(self, input_dim , hidden_dim, output_dim, num_layers=2, dropout=0.5):
         super().__init__()
         self.n_feat = input_dim
@@ -38,8 +39,8 @@ class MaskedGCN_FedPub(nn.Module):
         if is_proxy == True: return x
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
-        x = self.clsif(x)
-        return F.log_softmax(x, dim=1)
+        out = self.clsif(x)
+        return x, F.log_softmax(out, dim=1)
     
 
 

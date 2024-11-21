@@ -1,11 +1,13 @@
 logs/
 raw_data/
+processed_data/
 visualize*
 test*
 Scaffold2.py
 
 __pycache__
 .idea
+data/
 
 
 run.sh

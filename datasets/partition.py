@@ -154,7 +154,7 @@ def louvain_partitioner(data, num_clients):
     plt.ylabel("num_samples")
     plt.show()
 
-    return clients_data
+    return clients_nodes
 
 
 def dirichlet_partitioner1(data, num_clients, alpha, a, b):

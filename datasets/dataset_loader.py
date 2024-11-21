@@ -100,25 +100,25 @@ def load_dataset(train_val_test_split, root_dir, dataset_name):
         # data.val_mask = torch.unsqueeze(data.val_mask, dim=1)
         # data.test_mask = torch.unsqueeze(data.test_mask, dim=1)
 
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['texas', 'wisconsin', 'cornell']:
         dataset = WebKB(root=root_dir, name=dataset_name)
         data = dataset[0]
 
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['actor']:
         dataset = Actor(root='/data0/wgc_data/graph/actor')
         data = dataset[0]
 
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['squirrel', 'chameleon']:
         preProcDs = WikipediaNetwork(root=root_dir, name=dataset_name, geom_gcn_preprocess=False,
@@ -128,32 +128,32 @@ def load_dataset(train_val_test_split, root_dir, dataset_name):
         data = dataset[0]
         data.edge_index = preProcDs[0].edge_index
 
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['crocodile']:
         dataset = WikipediaNetwork2(root=root_dir, name=dataset_name, geom_gcn_preprocess=False)
         data = dataset[0]
         data.y = data.y.long()
 
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['computers', 'photo']:
         dataset = Amazon(root=root_dir, name=dataset_name)
         data = dataset[0]
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['cs', 'physics']:
         dataset = Coauthor(root=root_dir, name=dataset_name, transform=T.NormalizeFeatures())
         data = dataset[0]
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name == 'Penn94':
         data = load_fb100_dataset(root_dir, dataset_name, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop,
@@ -181,9 +181,9 @@ def load_dataset(train_val_test_split, root_dir, dataset_name):
 
     elif dataset_name == 'year':
         data = load_arxiv_year()
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name == 'snap-patents':
         data = load_snap_patents(root_dir)
@@ -199,23 +199,23 @@ def load_dataset(train_val_test_split, root_dir, dataset_name):
 
     elif dataset_name == 'yelpchi':
         data = load_yelpchi(root_dir)
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name == 'gamer':
         data = load_twitch_gamer_dataset(root_dir)
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ('ogbn-arxiv', 'ogbn-products', 'ogbn-proteins'):
         dataset = PygNodePropPredDataset(name=dataset_name, root=root_dir)
         data = dataset[0]
         data.y = data.y.squeeze()
-        splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
-                      for _ in range(num_masks)]
-        data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
+        # splits_lst = [rand_train_test_idx(data.y, train_prop=train_prop, valid_prop=valid_prop, test_prop=test_prop)
+        #               for _ in range(num_masks)]
+        # data.train_mask, data.val_mask, data.test_mask = index_to_mask(splits_lst, data.num_nodes)
 
     elif dataset_name in ['roman_empire', 'amazon_ratings', 'minesweeper', 'tolokers', 'questions']:
         dataset = HeterophilousGraphDataset(root=root_dir, name=dataset_name)
