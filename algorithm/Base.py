@@ -86,7 +86,7 @@ class BaseServer:
                 with torch.no_grad():
                     dict1 = client.model.state_dict()
                     weight = client.num_samples / self.num_total_samples
-                    embedding, out = self.model(client.data)
+                    embedding, out = client.model(client.data)
                     loss = F.nll_loss(out[client.data.test_mask], client.data.y[client.data.test_mask])
                     pred = out[client.data.test_mask].max(dim=1)[1]
                     acc = pred.eq(client.data.y[client.data.test_mask]).sum().item() / client.data.test_mask.sum().item()
@@ -113,7 +113,7 @@ class BaseServer:
             for client in self.clients:
                 with torch.no_grad():
                     weight = client.num_samples / self.num_total_samples
-                    embedding, out = self.model(client.data)
+                    embedding, out = client.model(client.data)
                     loss = F.nll_loss(out[client.data.val_mask], client.data.y[client.data.val_mask])
                     pred = out[client.data.val_mask].max(dim=1)[1]
                     acc = pred.eq(client.data.y[client.data.val_mask]).sum().item() / client.data.val_mask.sum().item()

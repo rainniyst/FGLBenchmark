@@ -21,7 +21,7 @@ def load_processed_data(args, data):
 
     if args.skew_type == "label_skew":
         cur_split_name = args.task + "_" + args.skew_type + "_" + args.dataset + "_" + str(args.num_clients) \
-                        + "_clients_seed_" + str(args.seed) + "_alpha_" + args.dirichlet_alpha
+                        + "_clients_seed_" + str(args.seed) + "_alpha_" + str(args.dirichlet_alpha)
     else:
         cur_split_name = args.task + "_" + args.skew_type + "_" + args.dataset + "_" + str(args.num_clients) \
                         + "_clients_seed_" + str(args.seed)

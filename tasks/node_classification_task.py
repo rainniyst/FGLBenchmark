@@ -37,9 +37,9 @@ class NodeClassificationTask(BaseTask):
         for cid in range(self.args.num_clients):
             client_model = get_model(self.args.model, self.input_dim, self.args.hidden_dim, self.num_classes,
                                      self.args.num_layers, self.args.dropout)
-            client_model.to(self.device)
+            client_model = client_model.to(self.device)
             client_data = self.clients_data[cid]
-            client_data.to(self.device)
+            client_data = client_data.to(self.device)
             client = get_client(self.args.fed_algorithm, self.args, client_model, client_data)
             clients.append(client)
 
@@ -47,8 +47,8 @@ class NodeClassificationTask(BaseTask):
                                self.args.dataset + '-' + self.args.fed_algorithm, self.args.logs_dir)
 
         server_model = get_model(self.args.model, self.input_dim, self.args.hidden_dim, self.num_classes, self.args.num_layers, self.args.dropout)
-        server_model.to(self.device)
-        self.server_data.to(self.device)
+        server_model = server_model.to(self.device)
+        self.server_data = self.server_data.to(self.device)
         self.server = get_server(self.args.fed_algorithm, self.args, clients, server_model, self.server_data, logger)
         self.clients = clients
 

@@ -1,6 +1,9 @@
 from algorithm.Base import BaseServer, BaseClient
 import torch
 import torch.nn.functional as F
+import copy
+
+
 def compute_fnsc_loss(feature, feature_g, data, tau=0.1):
     labels = data.y
     train_mask = data.train_mask
@@ -53,7 +56,7 @@ def compute_similarity_loss(data, feature, feature_g):
     similarity_g = F.cosine_similarity(feature_g_src, feature_g_dst, dim=1)
 
     sigma2 = 1.0
-    nll = 0.5 * torch.log(2 * torch.pi * sigma2) + ((similarity - similarity_g) ** 2) / (2 * sigma2)
+    nll = 0.5 * torch.log(torch.tensor(2 * torch.pi * sigma2)) + ((similarity - similarity_g) ** 2) / (2 * sigma2)
 
     loss = nll.sum()
 
@@ -70,7 +73,7 @@ class FGSSLServer(BaseServer):
                 client_param.data.copy_(server_param.data)
 
         for client in self.clients:
-            client.model_g = self.model
+            client.model_g = copy.deepcopy(self.model)
 
 
 class FGSSLClient(BaseClient):
@@ -84,9 +87,9 @@ class FGSSLClient(BaseClient):
         out, feature = self.model(self.data)
         out_g, feature_g = self.model_g(self.data)
         loss_distill = compute_similarity_loss(self.data, feature, feature_g)
-        loss_contrast = compute_fnsc_loss(feature, feature_g, self.data, tau=0.1)
+        loss_contrast = compute_fnsc_loss(feature, feature_g, self.data, tau=10)
         loss = self.loss_fn(out[self.data.train_mask], self.data.y[self.data.train_mask])
-        loss += loss_distill * self.args.distill_loss + loss_contrast
+        loss += loss_distill * self.args.fgssl_distill_loss_weight + loss_contrast * self.args.fgssl_contrastive_loss_weight
 
         loss.backward()
         self.optimizer.step()

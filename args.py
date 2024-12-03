@@ -41,7 +41,7 @@ parser.add_argument("--num_epochs", type=int, default=5)
 parser.add_argument("--cl_sample_rate", type=float, default=1.0)
 parser.add_argument("--evaluation_mode", type=str, default="global")
 
-parser.add_argument("--fed_algorithm", type=str, default="FedDC")
+parser.add_argument("--fed_algorithm", type=str, default="FGSSL")
 
 parser.add_argument("--model", type=str, default="GCN")
 parser.add_argument("--hidden_dim", type=int, default=64)
@@ -80,10 +80,23 @@ parser.add_argument("--fedtad_glb_epochs", type=int, default=5)
 parser.add_argument('--fedtad_it_g', type=int, default=1)
 parser.add_argument('--fedtad_it_d', type=int, default=5)
 parser.add_argument('--fedtad_topk', type=int, default=5)
+parser.add_argument("--fedtad_lam1", type=float, default=1.0)
+parser.add_argument("--fedtad_lam2", type=float, default=1.0)
+parser.add_argument("--fedtad_distill_mode", type=str, default="rep_distill")
+
+parser.add_argument("--adafgl_alpha", type=float, default=0.05)
+parser.add_argument("--adafgl_beta", type=float, default=0.2)
+parser.add_argument("--adafgl_step2_num_rounds", type=int, default=50)
+parser.add_argument("--adafgl_learning_rate", type=float, default=0.01)
+parser.add_argument("--adafgl_weight_decay", type=float, default=4e-4)
+parser.add_argument("--adafgl_prop_steps", type=int, default=3)
+parser.add_argument("--adafgl_r", type=float, default=0.5)
+parser.add_argument("--adafgl_threshold", type=float, default=0.5)
+
 
 # for FGSSL
-parser.add_argument("--distill_loss", type=int, default=10)
-parser.add_argument("--contrastive_loss", type=int, default=10)
+parser.add_argument("--fgssl_distill_loss_weight", type=int, default=0.5)
+parser.add_argument("--fgssl_contrastive_loss_weight", type=int, default=0.5)
 
 
 #for FGGP
