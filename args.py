@@ -41,7 +41,7 @@ parser.add_argument("--num_epochs", type=int, default=5)
 parser.add_argument("--cl_sample_rate", type=float, default=1.0)
 parser.add_argument("--evaluation_mode", type=str, default="global")
 
-parser.add_argument("--fed_algorithm", type=str, default="FGSSL")
+parser.add_argument("--fed_algorithm", type=str, default="FedGTA")
 
 parser.add_argument("--model", type=str, default="GCN")
 parser.add_argument("--hidden_dim", type=int, default=64)
@@ -82,7 +82,8 @@ parser.add_argument('--fedtad_it_d', type=int, default=5)
 parser.add_argument('--fedtad_topk', type=int, default=5)
 parser.add_argument("--fedtad_lam1", type=float, default=1.0)
 parser.add_argument("--fedtad_lam2", type=float, default=1.0)
-parser.add_argument("--fedtad_distill_mode", type=str, default="rep_distill")
+fedtad_distill_mode_choices = ["rep_distill", "raw_distill"]
+parser.add_argument("--fedtad_distill_mode", type=str, default="rep_distill", choices=fedtad_distill_mode_choices)
 
 parser.add_argument("--adafgl_alpha", type=float, default=0.05)
 parser.add_argument("--adafgl_beta", type=float, default=0.2)
@@ -93,6 +94,13 @@ parser.add_argument("--adafgl_prop_steps", type=int, default=3)
 parser.add_argument("--adafgl_r", type=float, default=0.5)
 parser.add_argument("--adafgl_threshold", type=float, default=0.5)
 
+parser.add_argument("--fedgta_prop_steps", type=int, default=5)
+parser.add_argument("--fedgta_lp_alpha", type=float, default=0.5)
+parser.add_argument("--fedgta_temperature", type=float, default=20.0)
+parser.add_argument("--fedgta_num_moments", type=int, default=10)
+fedgta_moment_type_choices = ["raw", "central", "hybrid"]
+parser.add_argument("--fedgta_moment_type", type=str, default="hybrid", choices=fedgta_moment_type_choices)
+parser.add_argument("--fedgta_accept_alpha", type=float, default=0.5)
 
 # for FGSSL
 parser.add_argument("--fgssl_distill_loss_weight", type=int, default=0.5)
